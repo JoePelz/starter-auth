@@ -26,6 +26,9 @@ class Auth extends Application {
             redirect('/auth'); //no user name given?
         }
         $user = $this->users->get($key);
+        if ($user == NULL) {
+            redirect('/auth'); //use the userID __NOT__ username
+        }
         if (password_verify($this->input->post('password'),$user->password)) {
             $this->session->set_userdata('userID',$key);
             $this->session->set_userdata('userName',$user->name);
