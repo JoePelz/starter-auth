@@ -43,18 +43,54 @@ class Application extends CI_Controller {
 	}
 
 	// build menu choices depending on the user role
-	function makemenu()
-	{
+	function makemenu() {
 		$choices = array();
 
 		$choices[] = array('name' => "Alpha", 'link' => '/alpha');
-		$choices[] = array('name' => "Beta", 'link' => '/beta');
-		$choices[] = array('name' => "Gamma", 'link' => '/gamma');
-		$choices[] = array('name' => "Login", 'link' => '/auth');
-		$choices[] = array('name' => "Logout", 'link' => '/auth/logout');
+                
+                if ($this->has_access([ROLE_USER, ROLE_ADMIN])) { 
+                    $choices[] = array('name' => "Beta", 'link' => '/beta'); 
+                }
+                if ($this->has_access(ROLE_ADMIN)) { 
+                    $choices[] = array('name' => "Gamma", 'link' => '/gamma'); 
+                }
+		if (!$this->session->userdata('userName')) {
+                    $choices[] = array('name' => "Login", 'link' => '/auth');
+                } else {
+                    $choices[] = array('name' => "Welcome, ".$this->session->userdata('userName')." (Logout)", 'link' => '/auth/logout');
+                }
 		return $choices;
 	}
-
+        
+        function has_access($roleNeeded = null) {
+            $userRole = $this->session->userdata('userRole');
+            if ($roleNeeded == null) {
+                return true;
+            }
+            if (is_array($roleNeeded)) {
+                if (in_array($userRole, $roleNeeded)) {
+                    return true;
+                }
+            } else if (strcmp($userRole, $roleNeeded) == 0) {
+                return true;
+            }
+            return false;
+        }
+        
+        function restrict($roleNeeded = null) {
+            $userRole = $this->session->userdata('userRole');
+            if ($roleNeeded != null) {
+                if (is_array($roleNeeded)) {
+                    if (!in_array($userRole, $roleNeeded)) {
+                        redirect("/");
+                        return;
+                    }
+                } else if ($userRole != $roleNeeded) {
+                    redirect("/");
+                    return;
+                }
+            }
+        }
 }
 
 /* End of file MY_Controller.php */
